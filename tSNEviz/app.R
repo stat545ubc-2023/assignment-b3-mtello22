@@ -21,6 +21,11 @@ color_df <- data.frame(
 # Define UI for the Shiny app
 ui <- fluidPage(
   titlePanel("tSNE - scRNA-seq melanoma samples"),
+  tags$p("The currrent Shiny app is intended for the visualization of single cell RNA-seq data generated in the study ",
+         tags$i("Dissecting the multicellular ecosystem of metastatic melanoma by single-cell RNA-seq "),
+         "by Tirosh, and collaborators 2016."),
+  tags$p("The data is available at ",
+         tags$a("GSE72056", href = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE72056")),
   sidebarLayout(
     sidebarPanel(
       selectInput(

@@ -5,6 +5,6 @@ account: mtello
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10660053
-bundleId: 7982409
+bundleId: 7982599
 url: https://mtello.shinyapps.io/tsneviz/
 version: 1
