@@ -1,12 +1,12 @@
 # Load libraries 
-library(shiny)
+# library(shiny)
 library(tidyverse)
 library(RColorBrewer)
 library(ggplot2)
 library(scales)
 
 # Load data 
-tsne_list <- readRDS("~/GitHub/assignment-b3-mtello22/tSNEviz/data/tsneout.RDS")
+tsne_list <- readRDS("tSNEviz/data/tsneout.RDS")
 tsne_meta <- tsne_list$sample_metadata
 
 # Format and factor
