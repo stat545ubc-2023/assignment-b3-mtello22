@@ -5,7 +5,7 @@ account: mtello
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10748631
-bundleId: 8022965
+bundleId: 8023008
 url: https://mtello.shinyapps.io/tSNEviz_reactive/
 version: 1
 asMultiple: FALSE

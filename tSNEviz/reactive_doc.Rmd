@@ -18,12 +18,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 ```{r}
-data_dir <- "data"
 
+data_dir <- "data"
 zip_file_path <- file.path(data_dir, "GSE72056_exp_df.zip")
 tsv_file_name <- "GSE72056_exp_df.tsv"
+
 # Unzip the contents of the .zip file
 unzip(zip_file_path, files = tsv_file_name, exdir = tempdir())
+
 # Read the .tsv file using fread
 exp_dt <- fread(file.path(tempdir(), tsv_file_name))
 
