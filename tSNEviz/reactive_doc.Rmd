@@ -29,7 +29,7 @@ cell_dt[, cell := factor(cell,
                                     "NaturalKiller"))]
 cell_dt[, malignant := factor(malignant)]
 
-donor_dt <- fread(file.path(data_dir, "GSE72056_donor_metadata.tsv"))
+donor_dt <- fread("data/GSE72056_donor_metadata.tsv")
 
 tumors <- as.character(unique(cell_dt$tumor_id))
 malignant <- unique(cell_dt$malignant)
