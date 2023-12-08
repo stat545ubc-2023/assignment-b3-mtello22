@@ -67,7 +67,7 @@ selectInput("color_var",
             label = "Choose a variable to color:",
             choices = c("Malignant" = "malignant", 
                         "Celltype" = "cell"),
-            selected = "Celltype")
+            selected = "cell")
 
 
 color_df <- data.table(
@@ -128,7 +128,7 @@ Please note that the subset of cells used to generate the last tSNE will be used
 color_df <- data.table(
   Variable = factor(x = c("Yes", "No", levels(cell_dt$cell), levels(cell_dt$tumor_id)), 
                     levels = c("Yes", "No", levels(cell_dt$cell), levels(cell_dt$tumor_id))),
-  Color = factor(c(brewer.pal(8, "Set3"), brewer.pal(8, "Dark2"), brewer.pal(11, "Paired")))
+  Color = factor(c(brewer.pal(8, "Set3"), brewer.pal(3, "Dark2")))
 )
 
 
@@ -139,7 +139,7 @@ inputPanel(
   checkboxGroupInput("celltypes", label = "Cell types:",
                      choices = celltypes, selected = celltypes),
   checkboxGroupInput("tumor_id", label = "Tumors to include:",
-                     choices = sort(tumors), selected =c("78","79","80","81","84","88")),
+                     choices = sort(tumors), selected =c("79","80","84")),
   actionButton("updatePlot", "Generate tSNE plot")
   
 )
