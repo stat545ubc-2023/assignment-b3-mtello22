@@ -19,7 +19,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r}
 data_dir <- "data"
-exp_dt <- fread(file.path(data_dir, "GSE72056_exp_df.tsv"))
+
+zip_file_path <- file.path(data_dir, "GSE72056_exp_df.zip")
+tsv_file_name <- "GSE72056_exp_df.tsv"
+# Unzip the contents of the .zip file
+unzip(zip_file_path, files = tsv_file_name, exdir = tempdir())
+# Read the .tsv file using fread
+exp_dt <- fread(file.path(tempdir(), tsv_file_name))
+
 cell_dt <- fread(file.path(data_dir, "GSE72056_cell_metadata.tsv"))
 cell_dt <- cell_dt[malignant != "Unresolved"]
 cell_dt <- cell_dt[cell != "Unresolved"]
@@ -200,8 +207,10 @@ renderPlot({
 
 A common approach to reduce dimensionality is to focus on genes whose expression is highly variable across the cells in the dataset. The following section allows you to visualize the expression variability using median absolute deviation (MAD) scores. 
 
+Please note that the following section will display an Error until you have generate an input tSNE plot since the variability range for the histogram is dictated by the subset of cells.
 
-```{r, error  =FALSE}
+
+```{r, error = FALSE}
 inputPanel(
   selectInput("n_breaks", label = "Number of bins:",
               choices = c(10, 20, 35, 50), selected = 20)
@@ -269,7 +278,7 @@ filteredData <- reactive({
 # Download handler for the button
 output$downloadButton <- downloadHandler(
   filename = function() {
-    paste("tSNEviz/data/filtered_data_", Sys.Date(), ".tsv", sep = "")
+    paste("filtered_data.tsv", sep = "")
   },
   content = function(file) {
     write.table(filteredData(), file, sep = "\t", row.names = FALSE, quote = FALSE)
