@@ -164,7 +164,7 @@ updateTsnePlot <- function() {
   cell2plot <- cell_dt[malignant %in% input$malignant][cell %in% input$celltypes][tumor_id %in% input$tumor_id, cell_id]
   
   dt_tsne <- t(as.matrix(exp_dt[, .SD, .SDcols = cell2plot]))
-  tsne_plot <- Rtsne(dt_tsne, partial_pca = TRUE, verbose = TRUE)
+  tsne_plot <- Rtsne(dt_tsne, partial_pca = TRUE, verbose = TRUE, num_threads = 1)
   tsne_plot <- data.table(cell_id = rownames(dt_tsne),
                           x = tsne_plot$Y[,1],
                           y = tsne_plot$Y[,2])
