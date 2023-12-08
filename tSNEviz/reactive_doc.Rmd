@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r}
 
-data_dir <- "data"
+data_dir <- "tSNEviz/data"
 zip_file_path <- file.path(data_dir, "GSE72056_exp_df.zip")
 tsv_file_name <- "GSE72056_exp_df.tsv"
 
