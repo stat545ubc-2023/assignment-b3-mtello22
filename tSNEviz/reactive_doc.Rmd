@@ -1,0 +1,284 @@
+---
+title: "Melanoma scRNAseq feature table build"
+author: "Marco Tello"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(Rtsne)
+library(ggplot2)
+library(scales)
+library(RColorBrewer)
+library(dplyr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+data_dir <- "data"
+exp_dt <- fread(file.path(data_dir, "GSE72056_exp_df.tsv"))
+cell_dt <- fread(file.path(data_dir, "GSE72056_cell_metadata.tsv"))
+cell_dt <- cell_dt[malignant != "Unresolved"]
+cell_dt <- cell_dt[cell != "Unresolved"]
+cell_dt[, tumor_id := factor(tumor_id)]
+cell_dt[, cell := factor(cell, 
+                         levels = c("T", "B", "Macrophage", 
+                                    "Endothelial", "CAF",
+                                    "NaturalKiller"))]
+cell_dt[, malignant := factor(malignant)]
+
+donor_dt <- fread(file.path(data_dir, "GSE72056_donor_metadata.tsv"))
+
+tumors <- as.character(unique(cell_dt$tumor_id))
+malignant <- unique(cell_dt$malignant)
+celltypes <- unique(cell_dt$cell)
+
+```
+
+
+
+# Goal of the current Shiny document: 
+
+The current document is aimed to provide an environment to visualize the single cell RNA-seq data from the study "Dissecting the multicellular ecosystem of metastatic melanoma by single-cell RNA-seq" by Tirosh, and collaborators 2016.
+
+After exploring the dataset and selecting the target cells to analyse, it is possible to download the filtered dataset. 
+
+
+# Dataset description. 
+
+The single cell dataset is composed of 4,645 cells derived from 18 different donors. Each cell was further classified into different cell types based on the expression of marker genes and into malignant status based on estimated copy number variation (CNV).  
+
+
+```{r}
+summary(cell_dt, maxsum = 20, na.strings = "")
+
+```
+
+
+# General distribution of metadata:
+
+The first step is to visualize the distribution of cells by each category of malignant or cell types.
+
+```{r}
+
+selectInput("color_var",
+            label = "Choose a variable to color:",
+            choices = c("Malignant" = "malignant", 
+                        "Celltype" = "cell"),
+            selected = "Celltype")
+
+
+color_df <- data.table(
+  Variable = factor(x = c("Yes", "No", levels(cell_dt$cell)), 
+                    levels = c("Yes", "No", levels(cell_dt$cell))),
+  Color = factor(brewer.pal(8, "Set3"))
+)
+data_plot <- reactive({
+  plot_dt <- cell_dt[, .SD, .SDcols = c("cell_id", "tumor_id", input$color_var)]
+  plot_dt <- merge.data.table(x = plot_dt, y =  color_df, 
+                              by.x = input$color_var, by.y = "Variable", 
+                              all.x = TRUE)
+})
+
+
+renderPlot({
+  plot_dt <- data_plot()
+  fill_dt <- data.table(Color = levels(droplevels(plot_dt$Color)), 
+                        Variable = levels(unlist(plot_dt[, .SD, .SDcols = input$color_var])))
+  ggplot(plot_dt, aes(x = tumor_id, fill = !!sym(input$color_var))) +
+    geom_bar(position = "fill") +
+    labs(title = element_blank(), y = "Fraction", x = "Tumor ID") +
+    scale_y_continuous(labels = scales::percent) +
+    scale_fill_manual(values = fill_dt$Color, labels = fill_dt$Variable) +
+    theme_classic() 
+})
+
+renderPlot({
+  plot_dt <- data_plot()
+  fill_dt <- data.table(Color = levels(droplevels(plot_dt$Color)), 
+                        Variable = levels(unlist(plot_dt[, .SD, .SDcols = input$color_var])))
+  ggplot(plot_dt, aes(x = tumor_id, fill = !!sym(input$color_var))) +
+    geom_bar(position = position_dodge()) +
+    labs(title = element_blank(), y = "Number of cells", x = "Tumor ID") +
+    scale_y_continuous(trans = "log10", labels = scales::comma) +
+    scale_fill_manual(values = fill_dt$Color, labels = fill_dt$Variable) +
+    theme_classic() 
+})
+```
+
+
+# tSNE visualization and cell filtering
+
+The original study from Tirosh and collaborators 2016 performed tSNE plots
+to visualize the organization of cells into clusters based on their transcriptomic profiles. 
+  
+  
+The following code reproduces the tSNE plot for figure 1C, however it is possible to select different options to also reproduce figure 1D or visualize other combinations of cells. 
+
+To calculate the tSNE plot based on the selected cells jsut click on "Generate tSNE plot". Running time could take up to one minute, depending on the amount of cells included (all boxes checked).    
+ 
+It is also possible to color the cells by "Malignant status" or "Cell type", changing this option won't recalculate the tSNE plot.
+
+Please note that the subset of cells used to generate the last tSNE will be used in the following sections. For instance, if you want to visualize variability only between T and B cells you must select the corresponding boxes and then generate the corresponding tSNE plot. This decision is aimed to mantain a consistent data subset during the rest of visualizations.
+
+```{r}
+
+color_df <- data.table(
+  Variable = factor(x = c("Yes", "No", levels(cell_dt$cell), levels(cell_dt$tumor_id)), 
+                    levels = c("Yes", "No", levels(cell_dt$cell), levels(cell_dt$tumor_id))),
+  Color = factor(c(brewer.pal(8, "Set3"), brewer.pal(8, "Dark2"), brewer.pal(11, "Paired")))
+)
+
+
+inputPanel(
+  checkboxGroupInput("malignant", label = "Malignant status:",
+              choices = c("Yes", "No"), 
+              selected = "Yes"),
+  checkboxGroupInput("celltypes", label = "Cell types:",
+                     choices = celltypes, selected = celltypes),
+  checkboxGroupInput("tumor_id", label = "Tumors to include:",
+                     choices = sort(tumors), selected =c("78","79","80","81","84","88")),
+  actionButton("updatePlot", "Generate tSNE plot")
+  
+)
+inputPanel(
+  selectInput("colorby", label = "Color cells by:",
+              choices = c("Tumor"= "tumor_id", 
+                          "Malignant status" = "malignant", 
+                          "Cell type" = "cell"), 
+              selected = "tumor_id")
+)
+updatePlotClicked <- reactiveVal(FALSE)  # Track if the "Update Plot" button is clicked
+tsnePlot <- reactiveVal(NULL)  # Store the tsne_plot
+
+observeEvent(input$updatePlot, {
+  updatePlotClicked(TRUE)
+  tsnePlot(updateTsnePlot())  # Update the stored tsne_plot
+  updatePlotClicked(FALSE)  # Reset the value to avoid further automatic re-executions
+})
+
+updateTsnePlot <- function() {
+  req(updatePlotClicked())  # Only proceed if the updatePlot button is clicked
+  cell2plot <- cell_dt[malignant %in% input$malignant][cell %in% input$celltypes][tumor_id %in% input$tumor_id, cell_id]
+  
+  dt_tsne <- t(as.matrix(exp_dt[, .SD, .SDcols = cell2plot]))
+  tsne_plot <- Rtsne(dt_tsne, partial_pca = TRUE, verbose = TRUE)
+  tsne_plot <- data.table(cell_id = rownames(dt_tsne),
+                          x = tsne_plot$Y[,1],
+                          y = tsne_plot$Y[,2])
+  tsne_plot <- merge.data.table(tsne_plot, cell_dt, by = "cell_id")
+  return(tsne_plot)
+}
+
+dataInput <- reactive({
+  req(!is.null(tsnePlot())) # Ensure tsnePlot is not NULL
+  tsnePlot()
+})
+
+renderPlot({
+  plot_dt <- dataInput()
+  plot_dt <- merge.data.table(x = plot_dt, y =  color_df, 
+                              by.x = input$colorby, by.y = "Variable", 
+                              all.x = TRUE)
+  fill_dt <- data.table(Color = levels(droplevels(plot_dt$Color)), 
+                        Variable = levels(droplevels(unlist(plot_dt[, .SD, .SDcols = input$colorby]))))
+  ggplot(plot_dt) +
+    geom_point(aes(x = x, y = y, color = !!sym(input$colorby))) +
+    labs(x = "tSNE1", y = "tSNE2")+
+    scale_color_manual(values = fill_dt$Color, labels = fill_dt$Variable) +
+    theme_classic()
+})
+
+```
+
+
+
+# Gene expression variability
+
+A common approach to reduce dimensionality is to focus on genes whose expression is highly variable across the cells in the dataset. The following section allows you to visualize the expression variability using median absolute deviation (MAD) scores. 
+
+
+```{r, error  =FALSE}
+inputPanel(
+  selectInput("n_breaks", label = "Number of bins:",
+              choices = c(10, 20, 35, 50), selected = 20)
+)
+
+hist_dt_reactive <- reactiveVal(NULL)
+
+sliderInput("var_threshold", label = "Select variability threshold:",
+             min = 0, max = 1, value = 0)
+
+output$histogram <- renderPlot({
+  plot_dt <- hist_dt_reactive()
+  ggplot(plot_dt, aes(x = exp_var)) +
+    geom_histogram(bins = input$n_breaks) +
+    scale_y_continuous(trans = "log10", labels = scales::comma) +
+    geom_vline(xintercept = input$var_threshold, 
+               linetype = "dashed", color = "red") +
+    labs(y = "Number of genes", x = "MAD") +
+    theme_classic()
+})
+
+observeEvent(input$updatePlot, {
+  hist_dt_reactive(updateHist())
+  updateSliderInput(session, "var_threshold", 
+                    min = min(hist_dt_reactive()$exp_var),
+                    max = round(max(hist_dt_reactive()$exp_var), 2),
+                    value = median(hist_dt_reactive()$exp_var))
+})
+
+updateHist <- function() {
+  cell2plot <- cell_dt[malignant %in% input$malignant][cell %in% input$celltypes][tumor_id %in% input$tumor_id, cell_id]
+  exp_mat <- as.matrix(exp_dt[, .SD, .SDcols = cell2plot])
+  gene_var <- apply(exp_mat, MARGIN = 1, mad, na.rm = TRUE)
+  hist_dt <- data.table(ENSG = exp_dt$ENSG, 
+                        exp_var = gene_var)
+  return(hist_dt)
+}
+
+plotOutput("histogram")
+
+```
+
+
+
+# Output processed data
+
+Now that we selected the appropriate filtering parameters, let's download the filtered data
+
+```{r}
+# Add the action button for downloading
+actionButton("downloadButton", "Download Filtered Data")
+
+# Add a reactive expression for filtered data
+filteredData <- reactive({
+  cell2plot <- cell_dt[malignant %in% input$malignant][cell %in% input$celltypes][tumor_id %in% input$tumor_id, cell_id]
+  exp_mat <- as.matrix(exp_dt[, .SD, .SDcols = cell2plot])
+  gene_var <- apply(exp_mat, MARGIN = 1, mad, na.rm = TRUE)
+  index_genes <- which(gene_var > input$var_threshold)
+  exp_mat_filtered <- exp_mat[index_genes, ]
+  exp_filtered <- data.table(ENSG = exp_dt$ENSG[index_genes], exp_mat_filtered)
+  colnames(exp_filtered) <- c("ENSG", cell2plot)
+  return(exp_filtered)
+})
+
+# Download handler for the button
+output$downloadButton <- downloadHandler(
+  filename = function() {
+    paste("tSNEviz/data/filtered_data_", Sys.Date(), ".tsv", sep = "")
+  },
+  content = function(file) {
+    write.table(filteredData(), file, sep = "\t", row.names = FALSE, quote = FALSE)
+  }
+)
+
+
+```
+
+
+
+
