@@ -18,17 +18,9 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 ```{r}
+data_dir <- "data"
 
-data_dir <- "tSNEviz/data"
-zip_file_path <- file.path(data_dir, "GSE72056_exp_df.zip")
-tsv_file_name <- "GSE72056_exp_df.tsv"
-
-# Unzip the contents of the .zip file
-# unzip(zip_file_path, files = tsv_file_name, exdir = tempdir())
-
-# Read the .tsv file using fread
-exp_dt <- fread(file.path(data_dir, tsv_file_name))
-
+exp_dt <- fread(file.path(data_dir, "GSE72056_exp_df.tsv"))
 cell_dt <- fread(file.path(data_dir, "GSE72056_cell_metadata.tsv"))
 cell_dt <- cell_dt[malignant != "Unresolved"]
 cell_dt <- cell_dt[cell != "Unresolved"]
