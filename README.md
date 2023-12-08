@@ -1,4 +1,6 @@
-The current Shiny app is intended for the visualization of single cell RNA-seq data generated in the study "*Dissecting the multicellular ecosystem of metastatic melanoma by single-cell RNA-seq*" by Tirosh, and collaborators 2016.
+# Simple Shiny app
+
+The simple Shiny app is intended for the visualization of single cell RNA-seq data generated in the study "*Dissecting the multicellular ecosystem of metastatic melanoma by single-cell RNA-seq*" by Tirosh, and collaborators 2016.
 
 The deployed version of the app can be accessed at <https://mtello.shinyapps.io/tsneviz/>
 
@@ -24,3 +26,7 @@ The current shiny app has the following graphic elements:
 -   **tSNEref**: Provides the tSNE colored by the selected "var" of interest: cell types or malignancy status. This feature is intended as a reference of the different cell clusters to compare cells from individual tumors to other cells in the similar tSNE coordinates.
 
 -   **tSNEtumor**: Provides a visualization of a given tumor of interest, colors the corresponding cells by the "var" of interest and sets the color of other cells to a gray background. This feature provides a way to localize cells from the same tumor samples in the context of other cell clusters.
+
+# Reactive version
+
+The previous Shiny app was also updated to provide a platform to explore the dataset and filter it based on user-defined requirements. In this version, all cells labelled as "Unresolved" were removed for simplicity.
