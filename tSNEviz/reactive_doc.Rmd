@@ -207,7 +207,7 @@ renderPlot({
 
 A common approach to reduce dimensionality is to focus on genes whose expression is highly variable across the cells in the dataset. The following section allows you to visualize the expression variability using median absolute deviation (MAD) scores. 
 
-Please note that the following section will display an Error until you have generate an input tSNE plot since the variability range for the histogram is dictated by the subset of cells.
+
 
 
 ```{r, error = FALSE}
@@ -221,7 +221,13 @@ hist_dt_reactive <- reactiveVal(NULL)
 sliderInput("var_threshold", label = "Select variability threshold:",
              min = 0, max = 1, value = 0)
 
-output$histogram <- renderPlot({
+observeEvent(input$updatePlot, {
+  hist_dt_reactive(updateHist())
+  updateSliderInput(session, "var_threshold", 
+                    min = min(hist_dt_reactive()$exp_var),
+                    max = round(max(hist_dt_reactive()$exp_var), 2),
+                    value = 0)
+  output$histogram <- renderPlot({
   plot_dt <- hist_dt_reactive()
   ggplot(plot_dt, aes(x = exp_var)) +
     geom_histogram(bins = input$n_breaks) +
@@ -231,13 +237,6 @@ output$histogram <- renderPlot({
     labs(y = "Number of genes", x = "MAD") +
     theme_classic()
 })
-
-observeEvent(input$updatePlot, {
-  hist_dt_reactive(updateHist())
-  updateSliderInput(session, "var_threshold", 
-                    min = min(hist_dt_reactive()$exp_var),
-                    max = round(max(hist_dt_reactive()$exp_var), 2),
-                    value = median(hist_dt_reactive()$exp_var))
 })
 
 updateHist <- function() {
