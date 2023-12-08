@@ -29,4 +29,17 @@ The current shiny app has the following graphic elements:
 
 # Reactive version
 
-The previous Shiny app was also updated to provide a platform to explore the dataset and filter it based on user-defined requirements. In this version, all cells labelled as "Unresolved" were removed for simplicity.
+The previous Shiny app was also updated to provide a platform to explore the dataset and filter it based on user-defined requirements. The document to run the reactive version can be found at
+
+"./tSNEviz/reactive_doc.Rmd"
+
+Once the document is loaded in an Rstudio session, its possible to runt it by clicking the "Run document" button.
+
+The deployed version can be found at <https://mtello.shinyapps.io/reactive_doc/>
+
+In this version, I only included non-malignant cells from two donors due to computational and storage limitations. by GitHub and ShinyApps.io. However, the code is able to run for the full dataset in a local computer with the following specs:
+
+**Processor:** 11th Gen Intel(R) Core(TM) i5-11400H \@ 2.70GHz, 2688 Mhz, 6 Core(s), 12 Logical Processor(s)\
+**Installed Physical Memory (RAM)**: 16.0 GB
+
+Therefore it is a good template to develop a local platform to analyze and filter single cell RNA-seq data.
