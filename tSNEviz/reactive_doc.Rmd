@@ -24,10 +24,10 @@ zip_file_path <- file.path(data_dir, "GSE72056_exp_df.zip")
 tsv_file_name <- "GSE72056_exp_df.tsv"
 
 # Unzip the contents of the .zip file
-unzip(zip_file_path, files = tsv_file_name, exdir = tempdir())
+# unzip(zip_file_path, files = tsv_file_name, exdir = tempdir())
 
 # Read the .tsv file using fread
-exp_dt <- fread(file.path(tempdir(), tsv_file_name))
+exp_dt <- fread(file.path(data_dir, tsv_file_name))
 
 cell_dt <- fread(file.path(data_dir, "GSE72056_cell_metadata.tsv"))
 cell_dt <- cell_dt[malignant != "Unresolved"]
